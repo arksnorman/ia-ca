@@ -6,8 +6,10 @@ phases:
       python: 3.12
     commands:
       - env
+      - which aws
+      - aws --version
       - pip install --upgrade pip
-      - pip install awscli cfn-lint ansible
+      - pip install ansible
       - aws s3 cp s3://tudublin-ca-aws-keys/tudublin.pem /root/.ssh/tudublin.pem
       - chmod 400 /root/.ssh/tudublin.pem
   pre_build:
@@ -16,19 +18,8 @@ phases:
       - aws cloudformation validate-template --template-body file://infranstructure.yaml --region $AWSRegion
   build:
     commands:
-      - aws cloudformation deploy \
-          --stack-name $CODEBUILD_SOURCE_VERSION \
-          --template-file infranstructure.yaml \
-          --parameter-overrides \
-              KeyName=$KeyName \
-              AMI=$AMI \
-              InstanceName=$InstanceName \
-              SubnetId=$SubnetId \
-              InstanceType=$InstanceType \
-              VPCId=$VPCId \
-          --region $AWSRegion \
-          --capabilities CAPABILITY_NAMED_IAM
-      - aws cloudformation wait stack-create-complete --stack-name $CODEBUILD_SOURCE_VERSION --region $AWSRegion
+      - aws cloudformation deploy --region $AWSRegion --stack-name $BRANCH --template-file infranstructure.yaml --parameter-overrides KeyName=$KeyName,AMI=$AMI,InstanceName=$InstanceName,SubnetId=$SubnetId,InstanceType=$InstanceType,VPCId=$VPCId
+      - aws cloudformation wait stack-create-complete --stack-name $BRANCH --region $AWSRegion
       - export PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name $CODEBUILD_SOURCE_VERSION --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" --output text)
       - ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts
       - echo "[web]" > inventory.ini
