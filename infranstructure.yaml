@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: "EC2 KeyPair to enable SSH access to the instance."
+    AllowedValues:
+        - tudublin
+    Default: tudublin
+
+  AMI:
+    Type: String
+    Description: "The AMI ID for the EC2 instance."
+    AllowedValues:
+        - ami-03fd334507439f4d1
+    Default: ami-03fd334507439f4d1
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: "The Subnet ID where the EC2 instance will be launched."
+    AllowedValues:
+        - subnet-058dde5de2753fae4
+    Default: subnet-058dde5de2753fae4
+
+  VPCId:
+    Type: AWS::EC2::VPC::Id
+    Description: "The VPC in which the instance and security group will be created."
+    AllowedValues:
+        - vpc-0393d1315f5e64c75
+    Default: vpc-0393d1315f5e64c75
+
+  InstanceType:
+    Type: String
+    Description: "The instance type for the EC2 instance."
+    AllowedValues:
+        - t2.micro
+    Default: t2.micro
+  
+  InstanceName:
+    Type: String
+    Description: "The name of the EC2 instance."
+    Default: "MyEC2Instance"
+
+Resources:
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Enable SSH access via port 22"
+      VpcId: !Ref VPCId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SG"
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AMI
+      KeyName: !Ref KeyName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+
+Outputs:
+  InstanceId:
+    Description: "The Instance ID of the newly created EC2 instance."
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceId"
+
+  PublicIP:
+    Description: "The Public IP Address of the newly created EC2 instance."
+    Value: !GetAtt EC2Instance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicIP"
+
+  PublicDNS:
+    Description: "The Public DNS Name of the newly created EC2 instance."
+    Value: !GetAtt EC2Instance.PublicDnsName
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicDNS"

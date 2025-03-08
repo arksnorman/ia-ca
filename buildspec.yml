@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - echo "Echoing all variables..."
+      - env
+      - pip install --upgrade pip
+      - pip install awscli cfn-lint ansible
+      - aws s3 cp s3://tudublin-ca-aws-keys/tudublin.pem /root/.ssh/tudublin.pem
+      - chmod 400 /root/.ssh/tudublin.pem
+  pre_build:
+    commands:
+      - cfn-lint -t template.yml
+      - aws cloudformation validate-template --template-body file://infranstructure.yaml --region $AWSRegion
+  build:
+    commands:
+      - aws cloudformation deploy \
+          --stack-name $CODEBUILD_SOURCE_VERSION \
+          --template-file infranstructure.yaml \
+          --parameter-overrides \
+              KeyName=$KeyName \
+              AMI=$AMI \
+              InstanceName=$InstanceName \
+              SubnetId=$SubnetId \
+              InstanceType=$InstanceType \
+              VPCId=$VPCId \
+          --region $AWSRegion \
+          --capabilities CAPABILITY_NAMED_IAM
+      - aws cloudformation wait stack-create-complete --stack-name $CODEBUILD_SOURCE_VERSION --region $AWSRegion
+      - export PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name $CODEBUILD_SOURCE_VERSION --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" --output text)
+      - ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts
+      - echo "[web]" > inventory.ini
+      - echo "$PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/tudublin.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
+  post_build:
+    commands:
+      - echo "Stack deployment complete."
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
