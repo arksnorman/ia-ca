@@ -39,7 +39,7 @@ phases:
         Environment=BRANCH_NAME=${BRANCH}
         User=ubuntu
         WorkingDirectory=/home/ubuntu/weather-app
-        ExecStart=/home/ubuntu/weather-app/.venv/bin/python3 /home/ubuntu/weather-app/app.py
+        ExecStart=/home/ubuntu/weather-app/.venv/bin/gunicorn --workers 4 --bind 0.0.0.0:5000 app:app
         Restart=always
 
         [Install]
