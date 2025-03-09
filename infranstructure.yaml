@@ -56,7 +56,7 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
-      DeletionPolicy: Delete
+    DeletionPolicy: Delete
 
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
