@@ -34,7 +34,9 @@ phases:
         After=network.target
 
         [Service]
-        Environment=S3_BUCKET_URL=${S3_URL},API_KEY=${API_KEY},BRANCH_NAME=${BRANCH}
+        Environment=S3_BUCKET_URL=${S3_URL}
+        Environment=API_KEY=${API_KEY}
+        Environment=BRANCH_NAME=${BRANCH}
         User=ubuntu
         WorkingDirectory=/home/ubuntu/weather-app
         ExecStart=/home/ubuntu/weather-app/.venv/bin/python3 /home/ubuntu/weather-app/app.py
@@ -45,6 +47,7 @@ phases:
         EOF
       - aws s3 cp assets s3://$S3_BUCKET/ --recursive
       - ansible-playbook -i inventory.ini playbook.yaml
+      - rm -rf /root/.ssh/tudublin.pem
 
 artifacts:
   files:
