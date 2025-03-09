@@ -11,7 +11,6 @@ phases:
       - chmod 400 /root/.ssh/tudublin.pem
   pre_build:
     commands:
-      - echo $AWSRegion
       - aws cloudformation validate-template --template-body file://infranstructure.yaml --region $AWSRegion
   build:
     commands:
@@ -26,19 +25,6 @@ phases:
       - export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='S3AssetBucket'].OutputValue" --output text)
 
   post_build:
-    # variables:
-    #   systemd-service-content: |
-    #     [Unit]
-    #     Description=Weather App
-    #     After=network.target
-    #     [Service]
-    #     Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
-    #     User=ubuntu
-    #     WorkingDirectory=/home/ubuntu
-    #     ExecStart=/usr/bin/python3 /home/ubuntu/app.py
-    #     Restart=always
-    #     [Install]
-    #     WantedBy=multi-user.target
     commands:
       - |
         cat <<EOF > weather-app.service
@@ -56,8 +42,6 @@ phases:
         [Install]
         WantedBy=multi-user.target
         EOF
-      - cat weather-app.service
-      - ls -lah
       - aws s3 cp ~/assets s3://$S3_BUCKET/ --recursive
 
 artifacts:
