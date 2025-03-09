@@ -73,11 +73,11 @@
               }
           }
         dest: /etc/nginx/sites-available/default
-      notify:
-        - reload nginx
 
-    - name: Start nginx
+    - name: Validate nginx configuration
+      command: nginx -t
+
+    - name: restart nginx
       service:
         name: nginx
-        state: started
-        enabled: yes
+        state: restarted
