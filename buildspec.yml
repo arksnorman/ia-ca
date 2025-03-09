@@ -42,7 +42,8 @@ phases:
         [Install]
         WantedBy=multi-user.target
         EOF
-      - aws s3 cp ~/assets s3://$S3_BUCKET/ --recursive
+      - ls -la assets
+      - aws s3 cp assets s3://$S3_BUCKET/ --recursive
 
 artifacts:
   files:
