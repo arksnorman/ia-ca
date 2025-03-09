@@ -28,20 +28,36 @@ phases:
       - cat inventory.ini
 
   post_build:
-    variables:
-      systemd-service-content: |
+    # variables:
+    #   systemd-service-content: |
+    #     [Unit]
+    #     Description=Weather App
+    #     After=network.target
+    #     [Service]
+    #     Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
+    #     User=ubuntu
+    #     WorkingDirectory=/home/ubuntu
+    #     ExecStart=/usr/bin/python3 /home/ubuntu/app.py
+    #     Restart=always
+    #     [Install]
+    #     WantedBy=multi-user.target
+    commands:
+      - |
+        cat <<EOF > weather-app.service
         [Unit]
         Description=Weather App
         After=network.target
+
         [Service]
         Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
         User=ubuntu
         WorkingDirectory=/home/ubuntu
         ExecStart=/usr/bin/python3 /home/ubuntu/app.py
         Restart=always
+
         [Install]
         WantedBy=multi-user.target
-    commands:
+        EOF
       - echo "$systemd-service-content" > weather-app.service
       - cat weather-app.service
       - ls -lah

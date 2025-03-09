@@ -118,7 +118,7 @@ Outputs:
     Export:
       Name: !Sub "${AWS::StackName}-PublicDNS"
 
-  S3Bucket:
+  S3AssetBucket:
     Description: "The S3 Bucket where the assets are stored."
     Value: !Ref S3AssetBucket
     Export:
