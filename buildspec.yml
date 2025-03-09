@@ -23,11 +23,12 @@ phases:
       - echo "[web]" > inventory.ini
       - echo "$PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/tudublin.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
       - export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='S3AssetBucket'].OutputValue" --output text)
-  create-systemd-service:
+      
+  post_build:
     variables:
       systemd-service-content: |
         [Unit]
-        Description=Flask App
+        Description=Weather App
         After=network.target
         [Service]
         Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
@@ -39,11 +40,8 @@ phases:
         WantedBy=multi-user.target
     commands:
       - echo "$systemd-service-content" > weather-app.service
-      
-  post_build:
-    commands:
-      - echo "Stack deployment complete."
-      - aws s3 cp  --recursive assets/* s3://$S3_BUCKET
+      - aws s3 cp  --recursive assets s3://$S3_BUCKET
+
 artifacts:
   files:
     - '**/*'
