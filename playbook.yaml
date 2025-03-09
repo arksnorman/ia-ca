@@ -35,9 +35,17 @@
         state: present
         update_cache: yes
 
+    - name: Install python venv
+      apt:
+        name: python3-venv
+        state: present
+        update_cache: yes
+
+    - name: Create python venv
+      command: python3 -m venv /home/ubuntu/weather-app/.venv
+    
     - name: Install requirements
-      pip:
-        requirements: /home/ubuntu/weather-app/requirements.txt
+      command: /home/ubuntu/weather-app/.venv/bin/pip install -r /home/ubuntu/weather-app/requirements.txt
 
     - name: Copy systemd service file
       copy:

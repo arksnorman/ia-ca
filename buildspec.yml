@@ -26,6 +26,7 @@ phases:
 
   post_build:
     commands:
+      - export S3_URL="https://$S3_BUCKET.s3.amazonaws.com"
       - |
         cat <<EOF > weather-app.service
         [Unit]
@@ -33,10 +34,10 @@ phases:
         After=network.target
 
         [Service]
-        Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
+        Environment=S3_BUCKET_URL=${S3_URL},API_KEY=${API_KEY},BRANCH_NAME=${BRANCH}
         User=ubuntu
-        WorkingDirectory=/home/ubuntu
-        ExecStart=/usr/bin/python3 /home/ubuntu/app.py
+        WorkingDirectory=/home/ubuntu/weather-app
+        ExecStart=/home/ubuntu/weather-app/.venv/bin/python3 /home/ubuntu/weather-app/app.py
         Restart=always
 
         [Install]
