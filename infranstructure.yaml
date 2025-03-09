@@ -42,6 +42,12 @@ Parameters:
     Default: "MyEC2Instance"
 
 Resources:
+  S3AssetBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-assets"
+      AccessControl: PublicRead
+    
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -91,3 +97,9 @@ Outputs:
     Value: !GetAtt EC2Instance.PublicDnsName
     Export:
       Name: !Sub "${AWS::StackName}-PublicDNS"
+
+  S3Bucket:
+    Description: "The S3 Bucket where the assets are stored."
+    Value: !Ref S3AssetBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-S3Bucket"

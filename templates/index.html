@@ -2,19 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="{{ s3_url }}css/bootstrap.min.css">
+    <script defer src="{{ s3_url }}js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-    <h1>To-Do List</h1>
-    <ul>
-        {% for todo in todos %}
-            <li>{{ todo }} <a href="{{ url_for('delete_todo', todo_id=loop.index0) }}">Delete</a></li>
-        {% endfor %}
-    </ul>
-    <form action="{{ url_for('add_todo') }}" method="post">
-        <input type="text" name="todo" placeholder="Enter a new to-do">
-        <button type="submit">Add</button>
-    </form>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="text-center">Weather App for {{ branch_name }} branch</h1>
+        <form method="POST" class="d-flex justify-content-center my-3">
+            <input type="text" name="city" class="form-control w-50 me-2" placeholder="Enter city name" required>
+            <button type="submit" class="btn btn-primary">Get Weather</button>
+        </form>
+        {% if weather_data %}
+            <div class="card mx-auto w-50">
+                <div class="card-body text-center">
+                    {% if weather_data.error %}
+                        <p class="text-danger">{{ weather_data.error }}</p>
+                    {% else %}
+                        <h3>{{ weather_data.name }}, {{ weather_data.sys.country }}</h3>
+                        <p>Temperature: {{ weather_data.main.temp }}°C</p>
+                        <p>Weather: {{ weather_data.weather[0].description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>

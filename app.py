@@ -1,26 +1,32 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, render_template, request
+import requests
+import os
 
 app = Flask(__name__)
 
-# In-memory storage for to-do items
-todos = []
+API_KEY = os.getenv("API_KEY", "")
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
-@app.route('/')
+S3_BUCKET_URL = os.getenv("S3_BUCKET_URL", "")
+BRANCH_NAME = os.getenv("BRANCH_NAME", "")
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', todos=todos)
-
-@app.route('/add', methods=['POST'])
-def add_todo():
-    todo = request.form.get('todo')
-    if todo:
-        todos.append(todo)
-    return redirect(url_for('index'))
-
-@app.route('/delete/<int:todo_id>')
-def delete_todo(todo_id):
-    if 0 <= todo_id < len(todos):
-        todos.pop(todo_id)
-    return redirect(url_for('index'))
+    weather_data = None
+    if request.method == 'POST':
+        city = request.form.get('city')
+        if city:
+            params = {
+                'q': city,
+                'appid': API_KEY,
+                'units': 'metric'
+            }
+            response = requests.get(BASE_URL, params=params)
+            if response.status_code == 200:
+                weather_data = response.json()
+            else:
+                weather_data = {'error': 'City not found!'}
+    return render_template('index.html', weather_data=weather_data, s3_url=S3_BUCKET_URL, branch_name=BRANCH_NAME)
 
 if __name__ == '__main__':
     app.run(debug=True)

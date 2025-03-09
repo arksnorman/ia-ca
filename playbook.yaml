@@ -1,10 +1,8 @@
-# Ansible play book. 
-#  Make sure nginx is installed and running on the server, add configuration to proxy to python app running on port 3000
-
 ---
 
 - hosts: all
   become: true
+
   tasks:
     - name: Install nginx
       apt:
@@ -12,28 +10,66 @@
         state: present
         update_cache: yes
 
+    - name: Create weather app directory
+      file:
+        path: /home/ubuntu/weather-app
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy code to the server
+      copy:
+        src: .
+        dest: /home/ubuntu/weather-app
+
+    - name: Install python
+      apt:
+        name: python3
+        state: present
+        update_cache: yes
+
+    - name: Install pip
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Install requirements
+      pip:
+        requirements: /home/ubuntu/weather-app/requirements.txt
+
+    - name: Copy systemd service file
+      copy:
+        src: weather-app.service
+        dest: /etc/systemd/system/weather-app.service
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Start weather app
+      systemd:
+        name: weather-app
+        state: started
+        enabled: yes
+      
+    - name: Create nginx configuration
+      copy:
+        content: |
+          server {
+              listen 80;
+              server_name _;
+              location / {
+                  proxy_pass http://127.0.0.1:5000;
+              }
+          }
+        dest: /etc/nginx/sites-available/default
+      notify:
+        - reload nginx
+
     - name: Start nginx
       service:
         name: nginx
         state: started
         enabled: yes
-
-    - name: Create nginx configuration
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/sites-available/default
-      notify:
-        - reload nginx
-    - name: Ensure nginx configuration is enabled
-      file:
-        src: /etc/nginx/sites-available/default
-        dest: /etc/nginx/sites-enabled/default
-        state: link
-      notify:
-        - reload nginx
-
-  handlers:
-    - name: reload nginx
-      service:
-        name: nginx
-        state: reloaded

@@ -5,7 +5,6 @@ phases:
     runtime-versions:
       python: 3.12
     commands:
-      - which ssh
       - pip install --upgrade pip
       - pip install ansible
       - aws s3 cp s3://tudublin-ca-aws-keys/tudublin.pem /root/.ssh/tudublin.pem
@@ -23,9 +22,28 @@ phases:
       - ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts
       - echo "[web]" > inventory.ini
       - echo "$PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/tudublin.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
+      - export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='S3AssetBucket'].OutputValue" --output text)
+  create-systemd-service:
+    variables:
+      systemd-service-content: |
+        [Unit]
+        Description=Flask App
+        After=network.target
+        [Service]
+        Environment=S3_BUCKET=${S3_BUCKET},API_KEY=${API_KEY}
+        User=ubuntu
+        WorkingDirectory=/home/ubuntu
+        ExecStart=/usr/bin/python3 /home/ubuntu/app.py
+        Restart=always
+        [Install]
+        WantedBy=multi-user.target
+    commands:
+      - echo "$systemd-service-content" > weather-app.service
+      
   post_build:
     commands:
       - echo "Stack deployment complete."
+      - aws s3 cp  --recursive assets/* s3://$S3_BUCKET
 artifacts:
   files:
     - '**/*'
