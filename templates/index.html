@@ -18,7 +18,7 @@
             <div class="card mx-auto w-50">
                 <div class="card-body text-center">
                     {% if weather_data.error %}
-                        <p class="text-danger">{{ weather_data.error }} test</p>
+                        <p class="text-danger">{{ weather_data.error }}</p>
                     {% else %}
                         <h3>{{ weather_data.name }}, {{ weather_data.sys.country }}</h3>
                         <p>Temperature: {{ weather_data.main.temp }}°C</p>
