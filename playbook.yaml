@@ -56,10 +56,10 @@
       systemd:
         daemon_reload: yes
 
-    - name: Start weather app
+    - name: Restart weather app service
       systemd:
         name: weather-app
-        state: started
+        state: restarted
         enabled: yes
       
     - name: Create nginx configuration
