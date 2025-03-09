@@ -46,6 +46,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
     
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
