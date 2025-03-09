@@ -45,7 +45,6 @@ Resources:
   S3AssetBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-assets"
       AccessControl: PublicRead
     
   EC2SecurityGroup:
