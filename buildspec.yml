@@ -19,7 +19,8 @@ phases:
       # - aws cloudformation deploy --region $AWSRegion --stack-name $BRANCH --template-file infranstructure.yaml --parameter-overrides KeyName=$KeyName,AMI=$AMI,InstanceName=$InstanceName,SubnetId=$SubnetId,InstanceType=$InstanceType,VPCId=$VPCId
       - aws cloudformation wait stack-create-complete --stack-name $BRANCH --region $AWSRegion
       - export PUBLIC_IP=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" --output text)
-      - ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts
+      # Wait for the instance to be ready
+      - ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts || sleep 60 && ssh-keyscan -H $PUBLIC_IP >> ~/.ssh/known_hosts
       - echo "[web]" > inventory.ini
       - echo "$PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/tudublin.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
       - export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='S3AssetBucket'].OutputValue" --output text)
@@ -41,6 +42,8 @@ phases:
     commands:
       - echo "$systemd-service-content" > weather-app.service
       - aws s3 cp  --recursive assets s3://$S3_BUCKET
+      - cat inventory.ini
+      - cat weather-app.service
 
 artifacts:
   files:
