@@ -20,7 +20,7 @@
                     {% if weather_data.error %}
                         <p class="text-danger">{{ weather_data.error }}</p>
                     {% else %}
-                        <h3>{{ weather_data.name }}, {{ weather_data.sys.country }}</h3>
+                        <h3 class="text-primary">{{ weather_data.name }}, {{ weather_data.sys.country }}</h3>
                         <p>Temperature: {{ weather_data.main.temp }}°C</p>
                         <p>Weather: {{ weather_data.weather[0].description }}</p>
                     {% endif %}
