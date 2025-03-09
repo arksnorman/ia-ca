@@ -45,10 +45,28 @@ Resources:
   S3AssetBucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       OwnershipControls:
         Rules:
-          - ObjectOwnership: ObjectWriter
+          - ObjectOwnership: BucketOwnerPreferred
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3AssetBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub ${S3AssetBucket.Arn}/*
     
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
