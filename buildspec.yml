@@ -24,8 +24,6 @@ phases:
       - echo "[web]" > inventory.ini
       - echo "$PUBLIC_IP ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/tudublin.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
       - export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $BRANCH --query "Stacks[0].Outputs[?OutputKey=='S3AssetBucket'].OutputValue" --output text)
-      - echo $S3_BUCKET
-      - cat inventory.ini
 
   post_build:
     # variables:
@@ -58,10 +56,9 @@ phases:
         [Install]
         WantedBy=multi-user.target
         EOF
-      - echo "$systemd-service-content" > weather-app.service
       - cat weather-app.service
       - ls -lah
-      - aws s3 cp assets s3://$S3_BUCKET/ --recursive
+      - aws s3 cp ~/assets s3://$S3_BUCKET/ --recursive
 
 artifacts:
   files:
